@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tic_tac_toe/settings/settings.dart';
 import 'package:tic_tac_toe/styles/style.dart';
 
-class BaseGame extends StatefulWidget {
-  const BaseGame({Key? key}) : super(key: key);
+class Game extends StatefulWidget {
+  const Game({Key? key}) : super(key: key);
 
   @override
-  State<BaseGame> createState() => _BaseGameState();
-
-  void handleMove(int index, List<String> board, bool finished, BuildContext context) {}
+  State<Game> createState() => _GameState();
 }
 
-class _BaseGameState extends State<BaseGame> {
+class _GameState extends State<Game> {
   static const List<List<int>> _winningCases = [
     [0, 1, 2],
     [3, 4, 5],
@@ -25,11 +22,11 @@ class _BaseGameState extends State<BaseGame> {
   ];
   final List<String> _board = List.filled(9, '');
   bool _finished = false;
+  String _player = 'X';
 
   @override
   Widget build(BuildContext context) {
     final style = context.watch<Style>();
-    final Settings settings = context.watch<Settings>();
     return Scaffold(
       body: Center(
         child: Padding(
@@ -38,7 +35,6 @@ class _BaseGameState extends State<BaseGame> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Text('Game', style: style.title),
-              _buildAdditionalInfo(context),
               Table(
                 border: TableBorder.all(
                     color: Colors.red, borderRadius: BorderRadius.circular(10)),
@@ -62,10 +58,6 @@ class _BaseGameState extends State<BaseGame> {
     );
   }
 
-  Widget _buildAdditionalInfo(BuildContext context) {
-    return Container(); // Override in subclasses if needed
-  }
-
   TableRow _tableRow(int i1, int i2, int i3) {
     return TableRow(
       children: [_cellRow(i1), _cellRow(i2), _cellRow(i3)],
@@ -74,7 +66,7 @@ class _BaseGameState extends State<BaseGame> {
 
   InkWell _cellRow(int index) {
     return InkWell(
-      onTap: () => widget.handleMove(index, _board, _finished, context),
+      onTap: () => _handleMove(index),
       child: SizedBox(
         height: 100,
         child: Icon(_board[index] == 'X'
@@ -84,6 +76,26 @@ class _BaseGameState extends State<BaseGame> {
                 : null),
       ),
     );
+  }
+
+  void _handleMove(int index) {
+    if (_finished) {
+      return;
+    }
+    _board[index] = _player;
+    _player = _player == 'X' ? 'O' : 'X';
+
+    if (_isWinner(_board, 'X')) {
+      _showSnackbar("X won!");
+      _finished = true;
+    } else if (_isWinner(_board, 'O')) {
+      _showSnackbar("O Won!");
+      _finished = true;
+    } else if (_findEmptyCells(_board).isEmpty) {
+      _showSnackbar("It's a draw!");
+      _finished = true;
+    }
+    setState(() {});
   }
 
   void _resetBoard() {
@@ -120,11 +132,5 @@ class _BaseGameState extends State<BaseGame> {
       }
     }
     return emptyCells;
-  }
-
-  bool _isGameOver() {
-    return _isWinner(_board, 'X') ||
-        _isWinner(_board, 'O') ||
-        _findEmptyCells(_board).isEmpty;
   }
 }

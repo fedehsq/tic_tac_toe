@@ -3,16 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:tic_tac_toe/settings/settings.dart';
 import 'package:tic_tac_toe/styles/style.dart';
 
-class BaseGame extends StatefulWidget {
-  const BaseGame({Key? key}) : super(key: key);
+class SinglePlayerGame extends StatefulWidget {
+  const SinglePlayerGame({Key? key}) : super(key: key);
 
   @override
-  State<BaseGame> createState() => _BaseGameState();
-
-  void handleMove(int index, List<String> board, bool finished, BuildContext context) {}
+  State<SinglePlayerGame> createState() => _SinglePlayerGameState();
 }
 
-class _BaseGameState extends State<BaseGame> {
+class _SinglePlayerGameState extends State<SinglePlayerGame> {
   static const List<List<int>> _winningCases = [
     [0, 1, 2],
     [3, 4, 5],
@@ -38,7 +36,8 @@ class _BaseGameState extends State<BaseGame> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Text('Game', style: style.title),
-              _buildAdditionalInfo(context),
+              Text('God Mode: ${settings.godMode.value}',
+                  style: style.subtitle),
               Table(
                 border: TableBorder.all(
                     color: Colors.red, borderRadius: BorderRadius.circular(10)),
@@ -62,10 +61,6 @@ class _BaseGameState extends State<BaseGame> {
     );
   }
 
-  Widget _buildAdditionalInfo(BuildContext context) {
-    return Container(); // Override in subclasses if needed
-  }
-
   TableRow _tableRow(int i1, int i2, int i3) {
     return TableRow(
       children: [_cellRow(i1), _cellRow(i2), _cellRow(i3)],
@@ -74,7 +69,7 @@ class _BaseGameState extends State<BaseGame> {
 
   InkWell _cellRow(int index) {
     return InkWell(
-      onTap: () => widget.handleMove(index, _board, _finished, context),
+      onTap: () => _handleMove(index),
       child: SizedBox(
         height: 100,
         child: Icon(_board[index] == 'X'
@@ -86,10 +81,43 @@ class _BaseGameState extends State<BaseGame> {
     );
   }
 
+  void _handleMove(int index) {
+    if (_finished) {
+      return;
+    }
+    if (_board[index] == '') {
+      _board[index] = 'X';
+      if (!_isGameOver()) {
+        // wait
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _adversaryMove();
+          setState(() {});
+        });
+      } else if (_isWinner(_board, 'X')) {
+        _showSnackbar("You won!");
+        _finished = true;
+      } else {
+        _showSnackbar("It's a draw!");
+        _finished = true;
+      }
+      setState(() {});
+    }
+  }
+
   void _resetBoard() {
     _board.fillRange(0, 9, '');
     _finished = false;
     setState(() {});
+  }
+
+  void _adversaryMove() {
+    final Settings settings = context.read<Settings>();
+    int bestMove = _minimax(_board, 'O', settings.getDepth())['index'];
+    _board[bestMove] = 'O';
+    if (_isWinner(_board, 'O')) {
+      _showSnackbar("You lost!");
+      _finished = true;
+    }
   }
 
   void _showSnackbar(String text) {
@@ -99,6 +127,37 @@ class _BaseGameState extends State<BaseGame> {
         duration: const Duration(seconds: 1),
       ),
     );
+  }
+
+  Map<String, dynamic> _minimax(List<String> board, String player, int depth) {
+    List<int> emptyCells = _findEmptyCells(board);
+    if (_isWinner(board, 'O')) {
+      return {'score': 1};
+    } else if (_isWinner(board, 'X')) {
+      return {'score': -1};
+    } else if (emptyCells.isEmpty || depth == 0) {
+      return {'score': 0};
+    }
+    List<Map<String, dynamic>> moves = [];
+    for (int index in emptyCells) {
+      Map<String, dynamic> move = {};
+      move['index'] = index;
+      board[index] = player;
+      var result = _minimax(board, player == 'O' ? 'X' : 'O', depth - 1);
+      move['score'] = result['score'];
+      board[index] = '';
+      moves.add(move);
+    }
+    int bestMove = 0;
+    int bestScore = player == 'O' ? -10000 : 10000;
+    for (var move in moves) {
+      if ((player == 'O' && move['score'] > bestScore) ||
+          (player == 'X' && move['score'] < bestScore)) {
+        bestScore = move['score'];
+        bestMove = move['index'];
+      }
+    }
+    return {'index': bestMove, 'score': bestScore};
   }
 
   bool _isWinner(List<String> board, String player) {

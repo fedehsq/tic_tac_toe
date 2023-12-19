@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:tic_tac_toe/screens/board.dart';
+import 'package:provider/provider.dart';
+import 'package:tic_tac_toe/router.dart';
+import 'package:tic_tac_toe/settings/settings.dart';
+import 'package:tic_tac_toe/styles/style.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const TicTacToe());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TicTacToe extends StatelessWidget {
+  const TicTacToe({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData.dark(
-        // dark theme
-        
-        useMaterial3: true,
-      ),
-      home: Board()
+    return MultiProvider(
+      providers: [
+        Provider(create: (context) => Settings()),
+        Provider(create: (context) => Style()),
+      ],
+      child: MaterialApp.router(
+          title: 'Tic-Tac-Toe',
+          theme: ThemeData.dark(
+            useMaterial3: true,
+          ),
+          routerConfig: router),
     );
   }
 }
