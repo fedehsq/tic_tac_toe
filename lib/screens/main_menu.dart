@@ -22,9 +22,18 @@ class MainMenuScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 60),
-              ElevatedButton(
-                onPressed: () => GoRouter.of(context).go('/game'),
-                child: Text('Play', style: style.button),
+              ButtonBar(
+                alignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => GoRouter.of(context).go('/singleplayer'),
+                    child: Text('Single Player', style: style.button),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => GoRouter.of(context).go('/multiplayer'),
+                    child: Text('Multiplayer', style: style.button),
+                  ),
+                ],
               ),
             ],
           ),

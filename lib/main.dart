@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tic_tac_toe/game/base_game.dart';
+import 'package:tic_tac_toe/game/multiplayer_game.dart';
+import 'package:tic_tac_toe/game/singleplayer_game.dart';
 import 'package:tic_tac_toe/router.dart';
 import 'package:tic_tac_toe/settings/settings.dart';
 import 'package:tic_tac_toe/styles/style.dart';
@@ -11,13 +14,15 @@ void main() {
 class TicTacToe extends StatelessWidget {
   const TicTacToe({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         Provider(create: (context) => Settings()),
         Provider(create: (context) => Style()),
+        Provider(create: (context) => BaseGame()),
+        Provider(create: (context) => SinglePlayerGame()),
+        Provider(create: (context) => MultiPlayerGame()),
       ],
       child: MaterialApp.router(
           title: 'Tic-Tac-Toe',

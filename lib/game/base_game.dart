@@ -1,4 +1,5 @@
-class Game {
+
+class BaseGame {
   static const List<List<int>> winningCases = [
     [0, 1, 2],
     [3, 4, 5],
@@ -16,7 +17,6 @@ class Game {
     board.fillRange(0, 9, '');
     finished = false;
   }
-
 
   bool isWinner(List<String> board, String player) {
     for (var winningCase in winningCases) {
@@ -37,5 +37,11 @@ class Game {
       }
     }
     return emptyCells;
+  }
+
+   bool isGameOver() {
+    return isWinner(board, 'X') ||
+        isWinner(board, 'O') ||
+        findEmptyCells(board).isEmpty;
   }
 }
